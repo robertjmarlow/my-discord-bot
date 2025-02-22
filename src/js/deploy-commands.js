@@ -35,13 +35,7 @@ async function getCommands() {
   return commands;
 }
 
-const commands = await getCommands();
-
-// Construct and prepare an instance of the REST module
-const rest = new REST().setToken(process.env.token);
-
-// and deploy your commands!
-(async () => {
+async function deployCommands(commands) {
   try {
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
@@ -56,4 +50,12 @@ const rest = new REST().setToken(process.env.token);
     // And of course, make sure you catch and log any errors!
     console.error(error);
   }
-})();
+}
+
+const commands = await getCommands();
+
+// Construct and prepare an instance of the REST module
+const rest = new REST().setToken(process.env.token);
+
+// and deploy your commands!
+await deployCommands(commands);

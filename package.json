@@ -4,7 +4,8 @@
   "main": "src/js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy-commands": "node src/js/deploy-commands.js"
   },
   "keywords": [],
   "author": "",
