@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join, dirname } from 'node:path';
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
 
