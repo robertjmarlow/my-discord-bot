@@ -4,7 +4,13 @@ import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,10 +46,19 @@ client.once(Events.ClientReady, readyClient => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
+client.on(Events.MessageCreate, async message => {
+  if (message.author.bot) {
+    console.log("ignoring bot-generated message");
+    return;
+  }
+
+  console.log(`user ${message.author.username} said "${message.content}" in channel [${message.channelId}]`);
+});
+
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 	
-  console.log(interaction);
+  console.log(`user ${interaction.user.username} used "/${interaction.commandName}" in channel [${interaction.channelId}]`);
 
   const command = interaction.client.commands.get(interaction.commandName);
 
