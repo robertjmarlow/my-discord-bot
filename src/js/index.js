@@ -53,6 +53,15 @@ client.on(Events.MessageCreate, async message => {
   }
 
   console.log(`user ${message.author.username} said "${message.content}" in channel [${message.channelId}]`);
+
+  // just general and zoomy zooms for now
+  if (message.channelId === "1331275006138781711" || message.channelId === "1331279251797970995") {
+    if (message.content.toLowerCase().includes("bad bot")) {
+      client.channels.cache.get(message.channelId).send(":sob:");
+    } else if (message.content.toLowerCase().includes("good bot")) {
+      client.channels.cache.get(message.channelId).send(":smiley:");
+    }
+  }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
