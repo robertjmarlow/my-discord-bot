@@ -1,8 +1,11 @@
 import fs from 'node:fs';
+import { get } from 'node:https';
 import { join, dirname } from 'node:path';
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
+import { parse } from 'csv-parse';
+import { BadWord } from './obj/bad-word.js';
 
 const client = new Client({
   intents: [
@@ -40,8 +43,56 @@ async function getCommands() {
   return commands;
 }
 
+async function getBadWords() {
+  const badWords: BadWord[] = [];
+
+  get(process.env.badWordList, res => {
+    console.log(`statusCode: [${res.statusCode}]`);
+    console.log(`headers['content-type']: [${res.headers['content-type']}]`);
+
+    if (res.statusCode !== 200) {
+      console.error("Failed to retrieve profanity .csv");
+      return;
+    }
+
+    let profanityCsv = '';
+    res
+      .setEncoding('utf8')
+      .on('data', chunk => profanityCsv += chunk)
+      .on('end', () => {
+        console.log(`Read [${profanityCsv.length}] characters of bad words csv`);
+
+        const parser = parse({
+          delimiter: ","
+        });
+        parser.on('readable', () => {
+          let record;
+          while ((record = parser.read()) !== null) {
+            if (record.length === 9) {
+              // const badWord = new BadWord(record[0], [], [], record[7], BadWordSeverity.Mild);
+              const badWord = BadWord.BadWordFactory(record);
+              console.log(`Adding [${badWord}]`);
+              badWords.push(record);
+            }
+          }
+        });
+        parser.write(profanityCsv);
+        parser.end();
+
+        // await finished(parser);
+      }
+    );
+  });
+
+  return badWords;
+}
+
+const badWords = await getBadWords();
+// console.log(badWords);
+
 client.commands = await getCommands();
 
+// TODO put all these event handlers in their own files / directory?
 client.once(Events.ClientReady, readyClient => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -57,16 +108,18 @@ client.on(Events.MessageCreate, async message => {
   // just general and zoomy zooms for now
   if (message.channelId === "1331275006138781711" || message.channelId === "1331279251797970995") {
     if (message.content.toLowerCase().includes("bad bot")) {
-      client.channels.cache.get(message.channelId).send(":sob:");
+      const channel = client.channels.cache.get(message.channelId);
+      (channel as TextChannel).send(":sob:");
     } else if (message.content.toLowerCase().includes("good bot")) {
-      client.channels.cache.get(message.channelId).send(":smiley:");
+      const channel = client.channels.cache.get(message.channelId);
+      (channel as TextChannel).send(":smiley:");
     }
   }
 });
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-	
+
   console.log(`user ${interaction.user.username} used "/${interaction.commandName}" in channel [${interaction.channelId}]`);
 
   const command = interaction.client.commands.get(interaction.commandName);

@@ -4,8 +4,10 @@
   "main": "src/js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint",
-    "deploy-commands": "node src/js/deploy-commands.js"
+    "deploy-commands": "node src/js/deploy-commands.js",
+    "build": "tsc --build",
+    "build-and-run": "tsc --build && node dist/index.js",
+    "clean": "tsc --build --clean"
   },
   "keywords": [],
   "author": "",
@@ -13,11 +15,14 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "csv-parse": "^5.6.0",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "eslint": "^9.20.1"
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
   }
 }
