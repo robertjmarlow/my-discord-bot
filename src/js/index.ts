@@ -1,10 +1,10 @@
 import fs from 'node:fs';
-import { get } from 'node:https';
 import { join, dirname } from 'node:path';
 import { Client, Collection, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
-import { parse } from 'csv-parse';
+import axios from 'axios';
+import { parse } from 'csv-parse/sync';
 import { BadWord } from './obj/bad-word.js';
 
 const client = new Client({
@@ -46,49 +46,37 @@ async function getCommands() {
 async function getBadWords() {
   const badWords: BadWord[] = [];
 
-  get(process.env.badWordList, res => {
-    console.log(`statusCode: [${res.statusCode}]`);
-    console.log(`headers['content-type']: [${res.headers['content-type']}]`);
+  try {
+    console.log(`Getting bad words from "${process.env.badWordList}".`);
 
-    if (res.statusCode !== 200) {
-      console.error("Failed to retrieve profanity .csv");
-      return;
+    const profanityCsvResponse = await axios.get(process.env.badWordList);
+    if (profanityCsvResponse.status === 200) {
+      const profanityCsv: string = profanityCsvResponse.data;
+
+      console.log(`Read [${profanityCsv.length}] characters of bad words csv.`);
+
+      const profanityRecords: any[] = parse(profanityCsv, {
+        columns: true
+      });
+
+      console.log(`Read [${profanityRecords.length}] bad words records.`);
+
+      console.log(`profanityRecords[0]: ${BadWord.BadWordFactory(profanityRecords[0])}`)
+      console.log(`profanityRecords[1]: ${BadWord.BadWordFactory(profanityRecords[1])}`)
+      console.log(`profanityRecords[2]: ${BadWord.BadWordFactory(profanityRecords[2])}`)
+
+    } else {
+      console.error(`Got a ${profanityCsvResponse.status} when reading bad words csv.`);
     }
-
-    let profanityCsv = '';
-    res
-      .setEncoding('utf8')
-      .on('data', chunk => profanityCsv += chunk)
-      .on('end', () => {
-        console.log(`Read [${profanityCsv.length}] characters of bad words csv`);
-
-        const parser = parse({
-          delimiter: ","
-        });
-        parser.on('readable', () => {
-          let record;
-          while ((record = parser.read()) !== null) {
-            if (record.length === 9) {
-              // const badWord = new BadWord(record[0], [], [], record[7], BadWordSeverity.Mild);
-              const badWord = BadWord.BadWordFactory(record);
-              console.log(`Adding [${badWord}]`);
-              badWords.push(record);
-            }
-          }
-        });
-        parser.write(profanityCsv);
-        parser.end();
-
-        // await finished(parser);
-      }
-    );
-  });
+  } catch (error) {
+    console.error(error);
+  }
 
   return badWords;
 }
 
 const badWords = await getBadWords();
-// console.log(badWords);
+console.log(`badWords: [${badWords}]`);
 
 client.commands = await getCommands();
 

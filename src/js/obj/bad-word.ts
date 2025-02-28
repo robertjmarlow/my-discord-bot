@@ -13,10 +13,14 @@ export class BadWord {
     this.severityDescription = severityDescription;
   }
 
-  public static BadWordFactory(input: any[]): BadWord {
-    if (input.length === 9) {
-      return new BadWord(input[0], [], [], parseFloat(input[7]), input[8] as BadWordSeverity);
-    }
+  public static BadWordFactory(input): BadWord {
+    return new BadWord(
+      input.text,
+      BadWord.getStringArrWithoutEmptyStrings(input.canonical_form_1, input.canonical_form_2, input.canonical_form_3),
+      BadWord.getStringArrWithoutEmptyStrings(input.category_1, input.category_2, input.category_3),
+      parseFloat(input.severity_rating),
+      input.severity_description as BadWordSeverity
+    );
   }
 
   public getText(): string {
@@ -40,7 +44,22 @@ export class BadWord {
   }
 
   public toString(): string {
-    return `text:"${this.text}" canonicalForms:[${this.canonicalForms}] categories:[${this.categories}] severity:[${this.severity}] severityDescription:"${this.severityDescription}"`;
+    return `text:"${this.text}" canonicalForms:[${this.canonicalForms}] categories:[${this.categories}] severity:${this.severity} severityDescription:"${this.severityDescription}"`;
+  }
+
+  private static getStringArrWithoutEmptyStrings(...inputs: string[]): string[] {
+    const strArr: string[] = [];
+
+    for (const str of inputs) {
+      if (str !== undefined) {
+        const trimmedStr = str.trim();
+        if (trimmedStr.length != 0) {
+          strArr.push(trimmedStr);
+        }
+      }
+    }
+
+    return strArr;
   }
 }
 
