@@ -15,6 +15,8 @@ const client = new Client({
   ],
 });
 
+const wordSeparator = /\b(\w+)\b/g;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -43,8 +45,8 @@ async function getCommands() {
   return commands;
 }
 
-async function getBadWords() {
-  const badWords: BadWord[] = [];
+async function getBadWords(): Promise<Map<string, BadWord>> {
+  const badWords: Map<string, BadWord> = new Map();
 
   try {
     console.log(`Getting bad words from "${process.env.badWordList}".`);
@@ -61,10 +63,17 @@ async function getBadWords() {
 
       console.log(`Read [${profanityRecords.length}] bad words records.`);
 
-      console.log(`profanityRecords[0]: ${BadWord.BadWordFactory(profanityRecords[0])}`)
-      console.log(`profanityRecords[1]: ${BadWord.BadWordFactory(profanityRecords[1])}`)
-      console.log(`profanityRecords[2]: ${BadWord.BadWordFactory(profanityRecords[2])}`)
+      for (let badWordIdx = 0; badWordIdx <= profanityRecords.length; badWordIdx++) {
+        const badWord: BadWord = BadWord.BadWordFactory(profanityRecords[badWordIdx]);
 
+        if (badWord !== undefined) {
+          badWords.set(badWord.getText(), badWord);
+        } else {
+          console.warn(`I had a problem reading ${profanityRecords[badWordIdx]}`);
+        }
+      }
+
+      console.log(`Added ${badWords.size} bad words`);
     } else {
       console.error(`Got a ${profanityCsvResponse.status} when reading bad words csv.`);
     }
@@ -76,7 +85,6 @@ async function getBadWords() {
 }
 
 const badWords = await getBadWords();
-console.log(`badWords: [${badWords}]`);
 
 client.commands = await getCommands();
 
@@ -101,6 +109,26 @@ client.on(Events.MessageCreate, async message => {
     } else if (message.content.toLowerCase().includes("good bot")) {
       const channel = client.channels.cache.get(message.channelId);
       (channel as TextChannel).send(":smiley:");
+    }
+
+    const badWordsInMessage: BadWord[] = [];
+    const messageWords: string[] = message.content.toLowerCase().match(wordSeparator);
+
+    // go through every word in the message looking for bad words
+    for (let wordIdx = 0; wordIdx < messageWords.length; wordIdx++) {
+      const badWord: BadWord = badWords.get(messageWords[wordIdx]);
+
+      if (badWord !== undefined) {
+        badWordsInMessage.push(badWord);
+      }
+    }
+
+    // did the message have a bad word?
+    if (badWordsInMessage.length > 0) {
+      const badWordsStr = badWordsInMessage.map((badWordInMessage) => badWordInMessage.getText()).join(", ");
+      console.log(`user ${message.author.username} said ${badWordsInMessage.length} bad word(s) in channel [${message.channelId}]: [${badWordsInMessage}], [${badWordsStr}]`);
+      // const channel = client.channels.cache.get(message.channelId);
+      // (channel as TextChannel).send(`${message.author.username} said these bad words: [${badWordsStr}]`);
     }
   }
 });

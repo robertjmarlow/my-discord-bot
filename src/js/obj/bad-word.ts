@@ -14,13 +14,20 @@ export class BadWord {
   }
 
   public static BadWordFactory(input): BadWord {
-    return new BadWord(
-      input.text,
-      BadWord.getStringArrWithoutEmptyStrings(input.canonical_form_1, input.canonical_form_2, input.canonical_form_3),
-      BadWord.getStringArrWithoutEmptyStrings(input.category_1, input.category_2, input.category_3),
-      parseFloat(input.severity_rating),
-      input.severity_description as BadWordSeverity
-    );
+    if (input !== undefined &&
+        input.text !== undefined &&
+        input.severity_rating !== undefined &&
+        input.severity_description !== undefined
+    ) {
+      return new BadWord(
+        input.text,
+        BadWord.getStringArrWithoutEmptyStrings(input.canonical_form_1, input.canonical_form_2, input.canonical_form_3),
+        BadWord.getStringArrWithoutEmptyStrings(input.category_1, input.category_2, input.category_3),
+        parseFloat(input.severity_rating),
+        input.severity_description as BadWordSeverity
+      );
+    }
+    return undefined;
   }
 
   public getText(): string {
