@@ -4,6 +4,7 @@
   "main": "src/js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint",
     "deploy-commands": "node src/js/deploy-commands.js",
     "build": "tsc --build",
     "build-and-run": "tsc --build && node dist/index.js",
