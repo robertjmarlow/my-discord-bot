@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join, dirname } from 'node:path';
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, MessageFlags, Channel, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
 import axios from 'axios';
@@ -63,17 +63,17 @@ async function getBadWords(): Promise<Map<string, BadWord>> {
 
       console.log(`Read [${profanityRecords.length}] bad words records.`);
 
-      for (let badWordIdx = 0; badWordIdx <= profanityRecords.length; badWordIdx++) {
+      for (let badWordIdx = 0; badWordIdx < profanityRecords.length; badWordIdx++) {
         const badWord: BadWord = BadWord.BadWordFactory(profanityRecords[badWordIdx]);
 
         if (badWord !== undefined) {
           badWords.set(badWord.getText(), badWord);
         } else {
-          console.warn(`I had a problem reading ${profanityRecords[badWordIdx]}`);
+          console.warn(`I had a problem reading ${profanityRecords[badWordIdx]}.`);
         }
       }
 
-      console.log(`Added ${badWords.size} bad words`);
+      console.log(`Added ${badWords.size} bad words.`);
     } else {
       console.error(`Got a ${profanityCsvResponse.status} when reading bad words csv.`);
     }
@@ -95,11 +95,17 @@ client.once(Events.ClientReady, readyClient => {
 
 client.on(Events.MessageCreate, async message => {
   if (message.author.bot) {
-    console.log("ignoring bot-generated message");
+    console.log("Ignoring bot-generated message.");
     return;
   }
 
-  console.log(`user ${message.author.username} said "${message.content}" in channel [${message.channelId}]`);
+  if (!(client.channels.cache.get(message.channelId) instanceof TextChannel)) {
+    console.log("Ignoring message from non-text channel.");
+    return;
+  }
+
+  const textChannel = client.channels.cache.get(message.channelId) as TextChannel;
+  console.log(`user ${message.author.globalName} said "${message.content}" in channel "${textChannel.name}".`);
 
   // just general and zoomy zooms for now
   if (message.channelId === "1331275006138781711" || message.channelId === "1331279251797970995") {
@@ -126,9 +132,9 @@ client.on(Events.MessageCreate, async message => {
     // did the message have a bad word?
     if (badWordsInMessage.length > 0) {
       const badWordsStr = badWordsInMessage.map((badWordInMessage) => badWordInMessage.getText()).join(", ");
-      console.log(`user ${message.author.username} said ${badWordsInMessage.length} bad word(s) in channel [${message.channelId}]: [${badWordsInMessage}], [${badWordsStr}]`);
+      console.log(`user ${message.author.globalName} said ${badWordsInMessage.length} bad word(s) in channel "${textChannel.name}": [${badWordsInMessage}], [${badWordsStr}].`);
       // const channel = client.channels.cache.get(message.channelId);
-      // (channel as TextChannel).send(`${message.author.username} said these bad words: [${badWordsStr}]`);
+      // (channel as TextChannel).send(`${message.author.globalName} said these bad words: [${badWordsStr}].`);
     }
   }
 });
@@ -136,7 +142,7 @@ client.on(Events.MessageCreate, async message => {
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  console.log(`user ${interaction.user.username} used "/${interaction.commandName}" in channel [${interaction.channelId}]`);
+  console.log(`user ${interaction.user.globalName} used "/${interaction.commandName}" in channel [${interaction.channelId}].`);
 
   const command = interaction.client.commands.get(interaction.commandName);
 
