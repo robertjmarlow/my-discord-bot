@@ -131,10 +131,14 @@ client.on(Events.MessageCreate, async message => {
 
     // did the message have a bad word?
     if (badWordsInMessage.length > 0) {
-      const badWordsStr = badWordsInMessage.map((badWordInMessage) => badWordInMessage.getText()).join(", ");
+      const badWordsStr = badWordsInMessage.map((badWordInMessage) => `"${badWordInMessage.getText()}"`).join(", ");
       console.log(`user ${message.author.globalName} said ${badWordsInMessage.length} bad word(s) in channel "${textChannel.name}": [${badWordsInMessage}], [${badWordsStr}].`);
-      // const channel = client.channels.cache.get(message.channelId);
-      // (channel as TextChannel).send(`${message.author.globalName} said these bad words: [${badWordsStr}].`);
+
+      const totalFine: number = badWordsInMessage.reduce((totalFine, nextBadWord) => totalFine + (nextBadWord.getSeverity() * Number(process.env.badWordMultiplier)), 0)
+      const messageStr = `user **${message.author.globalName}** has been fined **€${totalFine.toLocaleString()}** for using the following words: ${badWordsStr}.`;
+
+      console.log(messageStr);
+      // textChannel.send(messageStr);
     }
   }
 });
