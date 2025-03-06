@@ -1,6 +1,6 @@
 import { readdirSync, lstatSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags, Channel, TextChannel } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
 import axios from 'axios';
