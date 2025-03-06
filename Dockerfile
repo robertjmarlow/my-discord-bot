@@ -1,16 +1,20 @@
 # build node_modues
 FROM node:22-alpine AS build-node-stage
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm install
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN corepack enable
+RUN yarn set version stable
+RUN yarn install
 
 # build runtime
 FROM node:22-alpine AS build-runtime-stage
 WORKDIR /app
 COPY --from=build-node-stage /app/node_modules ./node_modules
-COPY package.json tsconfig.json ./
+COPY package.json yarn.lock tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN corepack enable
+RUN yarn install
+RUN yarn build
 
 # run it
 FROM node:22-alpine

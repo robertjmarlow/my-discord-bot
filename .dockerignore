@@ -3,6 +3,8 @@
 .git
 .gitignore
 .nvmrc
+.pnp.*
+.yarn
 dist
 eslint.config.mjs
 node_modules
