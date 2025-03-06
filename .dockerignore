@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.git
+.gitignore
+.nvmrc
+dist
+eslint.config.mjs
+node_modules
+notes
+README.md
