@@ -105,6 +105,11 @@ client.on(Events.MessageCreate, async message => {
   }
 
   const textChannel = client.channels.cache.get(message.channelId) as TextChannel;
+
+  if (message.content.trim().length === 0) {
+    console.log(`Ignoring empty message from user ${message.author.globalName} in channel "${textChannel.name}".`);
+  }
+
   console.log(`user ${message.author.globalName} said "${message.content}" in channel "${textChannel.name}".`);
 
   // just general and zoomy zooms for now
