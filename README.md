@@ -14,23 +14,32 @@ Basically going through [the discord.js Guide](https://discordjs.guide/) and the
 
 # Build + Run with Node
 
-You'll need:
+One-time setup steps:
 
 1. Install [nvm](https://github.com/nvm-sh/nvm)
+1. Tell nvm to use the correct version of node:
+    ```sh
+    nvm use
+    ```
 1. Install the [TypeScript](https://www.typescriptlang.org/) compiler globally:
     ```sh
     npm install -g tsc
+    ```
+1. Install [yarn](https://yarnpkg.com/):
+    ```sh
+    corepack enable
+    yarn install
     ```
 
 Build and run with:
 
 ```sh
-npm run build-and-run
+yarn build-and-run
 ```
 
 # Build + Run with Docker
 
-You'll need:
+One-time setup steps:
 
 1. Install [Docker](https://www.docker.com/)
 
