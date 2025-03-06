@@ -1,5 +1,5 @@
 import { REST, Routes } from 'discord.js';
-import { readdirSync } from 'node:fs';
+import { readdirSync, lstatSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const foldersPath = join(__dirname, 'commands');
-const commandFolders = readdirSync(foldersPath);
+const commandFolders = readdirSync(foldersPath).filter(folder => lstatSync(join(foldersPath, folder)).isDirectory());
 
 async function getCommands() {
   const commands = [];

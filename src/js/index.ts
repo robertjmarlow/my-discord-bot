@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import { readdirSync, lstatSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { Client, Collection, Events, GatewayIntentBits, MessageFlags, Channel, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
@@ -21,14 +21,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const foldersPath = join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
+const commandFolders = readdirSync(foldersPath).filter(folder => lstatSync(join(foldersPath, folder)).isDirectory());
 
 async function getCommands() {
   const commands = new Collection();
 
   for (const folder of commandFolders) {
     const commandsPath = join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.js'));
     for (const file of commandFiles) {
       const filePath = join(commandsPath, file);
       await import(filePath).then((command) => {
