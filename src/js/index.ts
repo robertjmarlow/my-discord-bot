@@ -51,18 +51,21 @@ async function getBadWords(): Promise<Map<string, BadWord>> {
   try {
     console.log(`Getting bad words from "${process.env.badWordList}".`);
 
+    // get the bad word list csv
     const profanityCsvResponse = await axios.get(process.env.badWordList);
     if (profanityCsvResponse.status === 200) {
       const profanityCsv: string = profanityCsvResponse.data;
 
       console.log(`Read [${profanityCsv.length}] characters of bad words csv.`);
 
+      // turn the csv into an array of records
       const profanityRecords: any[] = parse(profanityCsv, {
         columns: true
       });
 
       console.log(`Read [${profanityRecords.length}] bad words records.`);
 
+      // turn the array of records into an array of BadWords
       for (let badWordIdx = 0; badWordIdx < profanityRecords.length; badWordIdx++) {
         const badWord: BadWord = BadWord.BadWordFactory(profanityRecords[badWordIdx]);
 
@@ -94,11 +97,15 @@ client.once(Events.ClientReady, readyClient => {
 });
 
 client.on(Events.MessageCreate, async message => {
+  // ignore bot-generated message
+  // it'll probably end up in end endless loop otherwise
   if (message.author.bot) {
     console.log("Ignoring bot-generated message.");
     return;
   }
 
+  // ignore anything that's not from a text channel
+  // not necessary to do anything else with the message
   if (!(client.channels.cache.get(message.channelId) instanceof TextChannel)) {
     console.log("Ignoring message from non-text channel.");
     return;
@@ -106,8 +113,11 @@ client.on(Events.MessageCreate, async message => {
 
   const textChannel = client.channels.cache.get(message.channelId) as TextChannel;
 
+  // ignore "empty messages", e.g. from image replies
+  // not necessary to do anything else with the message
   if (message.content.trim().length === 0) {
     console.log(`Ignoring empty message from user ${message.author.globalName} in channel "${textChannel.name}".`);
+    return;
   }
 
   console.log(`user ${message.author.globalName} said "${message.content}" in channel "${textChannel.name}".`);
@@ -136,10 +146,14 @@ client.on(Events.MessageCreate, async message => {
 
     // did the message have a bad word?
     if (badWordsInMessage.length > 0) {
+      // construct a user-readable list of bad words
       const badWordsStr = badWordsInMessage.map((badWordInMessage) => `"${badWordInMessage.getText()}"`).join(", ");
       console.log(`user ${message.author.globalName} said ${badWordsInMessage.length} bad word(s) in channel "${textChannel.name}": [${badWordsInMessage}], [${badWordsStr}].`);
 
+      // construct a fine
       const totalFine: number = badWordsInMessage.reduce((totalFine, nextBadWord) => totalFine + (nextBadWord.getSeverity() * Number(process.env.badWordMultiplier)), 0)
+
+      // let the user know they've been fined
       const messageStr = `user **${message.author.globalName}** has been fined **€${totalFine.toLocaleString()}** for using the following words: ${badWordsStr}.`;
 
       console.log(messageStr);
