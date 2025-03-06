@@ -20,7 +20,7 @@ export class BadWord {
         input.severity_description !== undefined
     ) {
       return new BadWord(
-        input.text,
+        input.text.toLowerCase(),
         BadWord.getStringArrWithoutEmptyStrings(input.canonical_form_1, input.canonical_form_2, input.canonical_form_3),
         BadWord.getStringArrWithoutEmptyStrings(input.category_1, input.category_2, input.category_3),
         parseFloat(input.severity_rating),
