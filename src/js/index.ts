@@ -18,8 +18,17 @@ const client = new Client({
 
 const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.combine(winston.format.timestamp(), winston.format.cli()),
-  transports: [new winston.transports.Console()],
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.cli()
+    }),
+    new winston.transports.File({
+      filename: 'logs/logs.log',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    )}),
+  ]
 });
 
 const wordSeparator = /\b(\w+)\b/g;
