@@ -52,5 +52,5 @@ docker build -t mydiscordbot .
 Run the image with:
 
 ```sh
-docker run --env-file=".env" -d --rm mydiscordbot:latest
+docker run --env-file=".env" --volume ./logs:/app/logs -d --rm mydiscordbot:latest
 ```
