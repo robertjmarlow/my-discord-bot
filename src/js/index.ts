@@ -3,10 +3,7 @@ import { join, dirname } from 'node:path';
 import { Client, Collection, Events, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { fileURLToPath } from 'node:url';
 import 'dotenv/config';
-import axios from 'axios';
-import { parse } from 'csv-parse/sync';
 import winston from 'winston';
-import { BadWord } from './obj/bad-word.js';
 
 const client = new Client({
   intents: [
@@ -30,8 +27,6 @@ const logger = winston.createLogger({
     )}),
   ]
 });
-
-const wordSeparator = /\b(\w+)\b/g;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,50 +55,6 @@ async function getCommands() {
 
   return commands;
 }
-
-async function getBadWords(): Promise<Map<string, BadWord>> {
-  const badWords: Map<string, BadWord> = new Map();
-
-  try {
-    logger.info(`Getting bad words from "${process.env.badWordList}".`);
-
-    // get the bad word list csv
-    const profanityCsvResponse = await axios.get(process.env.badWordList);
-    if (profanityCsvResponse.status === 200) {
-      const profanityCsv: string = profanityCsvResponse.data;
-
-      logger.info(`Read [${profanityCsv.length}] characters of bad words csv.`);
-
-      // turn the csv into an array of records
-      const profanityRecords: any[] = parse(profanityCsv, {
-        columns: true
-      });
-
-      logger.info(`Read [${profanityRecords.length}] bad words records.`);
-
-      // turn the array of records into an array of BadWords
-      for (let badWordIdx = 0; badWordIdx < profanityRecords.length; badWordIdx++) {
-        const badWord: BadWord = BadWord.BadWordFactory(profanityRecords[badWordIdx]);
-
-        if (badWord !== undefined) {
-          badWords.set(badWord.getText(), badWord);
-        } else {
-          logger.warn(`I had a problem reading ${profanityRecords[badWordIdx]}.`);
-        }
-      }
-
-      logger.info(`Added ${badWords.size} bad words.`);
-    } else {
-      logger.error(`Got a ${profanityCsvResponse.status} when reading bad words csv.`);
-    }
-  } catch (error) {
-    logger.error(error);
-  }
-
-  return badWords;
-}
-
-const badWords = await getBadWords();
 
 client.commands = await getCommands();
 
@@ -146,34 +97,6 @@ client.on(Events.MessageCreate, async message => {
     } else if (message.content.toLowerCase().includes("good bot")) {
       const channel = client.channels.cache.get(message.channelId);
       (channel as TextChannel).send(":smiley:");
-    }
-
-    const badWordsInMessage: BadWord[] = [];
-    const messageWords: string[] = message.content.toLowerCase().match(wordSeparator);
-
-    // go through every word in the message looking for bad words
-    for (let wordIdx = 0; wordIdx < messageWords.length; wordIdx++) {
-      const badWord: BadWord = badWords.get(messageWords[wordIdx]);
-
-      if (badWord !== undefined) {
-        badWordsInMessage.push(badWord);
-      }
-    }
-
-    // did the message have a bad word?
-    if (badWordsInMessage.length > 0) {
-      // construct a user-readable list of bad words
-      const badWordsStr = badWordsInMessage.map((badWordInMessage) => `"${badWordInMessage.getText()}"`).join(", ");
-      logger.info(`user ${message.author.globalName} said ${badWordsInMessage.length} bad word(s) in channel "${textChannel.name}": [${badWordsInMessage}], [${badWordsStr}].`);
-
-      // construct a fine
-      const totalFine: number = badWordsInMessage.reduce((totalFine, nextBadWord) => totalFine + (nextBadWord.getSeverity() * Number(process.env.badWordMultiplier)), 0)
-
-      // let the user know they've been fined
-      const messageStr = `user **${message.author.globalName}** has been fined **€${totalFine.toLocaleString()}** for using the following words: ${badWordsStr}.`;
-
-      logger.info(messageStr);
-      // textChannel.send(messageStr);
     }
   }
 });

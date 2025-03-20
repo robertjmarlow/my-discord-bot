@@ -8,8 +8,6 @@ Basically going through [the discord.js Guide](https://discordjs.guide/) and the
     token=
     clientId=
     guildId=
-    badWordList=
-    badWordMultiplier=
     ```
 
 # Build + Run with Node
