@@ -16,8 +16,8 @@
   "description": "",
   "type": "module",
   "dependencies": {
-    "discord.js": "^14.20.0",
-    "dotenv": "^16.4.7",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
