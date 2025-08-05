@@ -1,5 +1,5 @@
 # build
-FROM node:22-alpine AS build-stage
+FROM node:24-alpine AS build-stage
 WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml tsconfig.json ./
 COPY src ./src
@@ -10,7 +10,7 @@ RUN yarn workspaces focus --production
 RUN yarn build
 
 # run
-FROM node:22-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY --from=build-stage /app/node_modules ./node_modules
 COPY --from=build-stage /app/dist ./dist
