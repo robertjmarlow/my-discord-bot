@@ -16,7 +16,7 @@
   "description": "",
   "type": "module",
   "dependencies": {
-    "discord.js": "^14.26.3",
+    "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
     "winston": "^3.19.0"
   },
@@ -26,6 +26,11 @@
     "eslint": "^9.39.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0"
+  },
+  "resolutions": {
+    "js-yaml": "4.3.1",
+    "undici": "6.28.0",
+    "ws": "8.21.3"
   },
   "packageManager": "yarn@4.14.1"
 }
